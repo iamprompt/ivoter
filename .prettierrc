@@ -1,0 +1,8 @@
+{
+  "singleQuote": true,
+  "semi": false,
+  "trailingComma": "es5",
+  "printWidth": 80,
+  "jsxSingleQuote": false,
+  "tailwindConfig": "./tailwind.config.js"
+}
