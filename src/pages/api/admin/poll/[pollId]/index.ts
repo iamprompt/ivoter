@@ -4,7 +4,7 @@ import { generate } from 'shortid'
 import type { Option, Poll } from '~/core/@types/firebase/Poll'
 import { formatDocument } from '~/modules/api/services/formatDocument'
 import { db } from '~/modules/api/services/getFirestoreInstance'
-import { getUserAndVerifyAuth } from '~/modules/api/services/getUserAndVerifyAuth'
+// import { getUserAndVerifyAuth } from '~/modules/api/services/getUserAndVerifyAuth'
 
 /**
  * ROUTE /api/admin/poll
@@ -17,7 +17,7 @@ const API: NextApiHandler = async (req, res) => {
 
   // Get and Verify User
   try {
-    await getUserAndVerifyAuth(req.headers.authorization as string, ['admin'])
+    // await getUserAndVerifyAuth(req.headers.authorization as string, ['admin'])
 
     // GET – Get a poll
     if (method === 'GET') {
