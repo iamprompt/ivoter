@@ -4,7 +4,7 @@ import Link from 'next/link'
 const Home: NextPage = () => {
   return (
     <div>
-      <Link href={`/test`}>next</Link>
+      <Link href={`/`}>home</Link>
     </div>
   )
 }
