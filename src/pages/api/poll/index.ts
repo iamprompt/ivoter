@@ -1,31 +1,36 @@
-import { Timestamp } from 'firebase-admin/firestore'
 import type { NextApiHandler } from 'next'
-import { generate } from 'shortid'
-import type { Option, Poll } from '~/core/@types/firebase/Poll'
+import type { Poll } from '~/core/@types/firebase/Poll'
 import { formatDocument } from '~/modules/api/services/formatDocument'
 import { db } from '~/modules/api/services/getFirestoreInstance'
 import { getUserAndVerifyAuth } from '~/modules/api/services/getUserAndVerifyAuth'
 
 /**
- * ROUTE /api/admin/poll
+ * ROUTE /api/poll
  * GET – Get all polls
- * POST – Create a new poll
  */
 const API: NextApiHandler = async (req, res) => {
   const { method } = req
 
   // Get and Verify User
   try {
-    await getUserAndVerifyAuth(req.headers.authorization as string, ['admin'])
+    const u = await getUserAndVerifyAuth(req.headers.authorization as string)
 
     // GET – Get all polls
     if (method === 'GET') {
       const pollsSnapshot = await db
         .collection('polls')
+        .where('participants', 'array-contains', u.uid)
         .get()
         .then((snapshot) => snapshot.docs)
 
-      const polls = pollsSnapshot.reduce((acc, doc) => {
+      const polls = await pollsSnapshot.reduce(async (acc, doc) => {
+        // Check if user already participated in poll
+        const userBallot = await doc.ref.collection('ballots').doc(u.uid).get()
+
+        if (userBallot.exists) {
+          return acc
+        }
+
         return {
           ...acc,
           [doc.id]: formatDocument(
@@ -37,28 +42,6 @@ const API: NextApiHandler = async (req, res) => {
       }, Promise.resolve({}) as Promise<Record<string, Poll>>)
 
       return res.status(200).json({ status: 200, payload: polls })
-    }
-
-    // POST – Create a new poll
-    if (req.method === 'POST') {
-      const { title, description, questions, options, start_date, end_date } =
-        req.body
-
-      const newPoll: Poll = {
-        title,
-        description,
-        questions,
-        options: (options as Array<Option>).map((option) => ({
-          ...option,
-          id: option.id || generate(),
-        })),
-        start_date: Timestamp.fromMillis(new Date(start_date).getTime()),
-        end_date: Timestamp.fromMillis(new Date(end_date).getTime()),
-      }
-
-      const pollRef = await db.collection('polls').add(newPoll)
-
-      return res.status(200).json({ status: 200, payload: pollRef.id })
     }
 
     return res.status(405).json({ status: 405, payload: 'Method Not Allowed' })

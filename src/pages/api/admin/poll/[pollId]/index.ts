@@ -4,12 +4,12 @@ import { generate } from 'shortid'
 import type { Option, Poll } from '~/core/@types/firebase/Poll'
 import { formatDocument } from '~/modules/api/services/formatDocument'
 import { db } from '~/modules/api/services/getFirestoreInstance'
-// import { getUserAndVerifyAuth } from '~/modules/api/services/getUserAndVerifyAuth'
+import { getUserAndVerifyAuth } from '~/modules/api/services/getUserAndVerifyAuth'
 
 /**
- * ROUTE /api/admin/poll
- * GET – Get all polls
- * POST – Create a new poll
+ * ROUTE /api/admin/poll/:id
+ * GET – Get a poll
+ * PATCH – Update a poll
  */
 const API: NextApiHandler = async (req, res) => {
   const { query, method } = req
@@ -17,16 +17,20 @@ const API: NextApiHandler = async (req, res) => {
 
   // Get and Verify User
   try {
-    // await getUserAndVerifyAuth(req.headers.authorization as string, ['admin'])
+    await getUserAndVerifyAuth(req.headers.authorization as string, ['admin'])
+    const pollRef = db.collection('polls').doc(id as string)
+    const poll = (await pollRef
+      .get()
+      .then((snapshot) =>
+        snapshot.exists ? formatDocument(snapshot.data() as Poll) : undefined
+      )) as Poll | undefined
+
+    if (!poll) {
+      return res.status(404).json({ status: 404, payload: 'Not Found' })
+    }
 
     // GET – Get a poll
     if (method === 'GET') {
-      const poll = (await db
-        .collection('polls')
-        .doc(id as string)
-        .get()
-        .then((snapshot) => formatDocument(snapshot.data() as Poll))) as Poll
-
       return res.status(200).json({ status: 200, payload: poll })
     }
 
