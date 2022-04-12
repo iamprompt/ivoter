@@ -3,8 +3,8 @@ import type { NextApiHandler } from 'next'
 import { generate } from 'shortid'
 import type { Option, Poll } from '~/core/@types/firebase/Poll'
 import { formatDocument } from '~/modules/api/services/formatDocument'
-import { db } from '~/modules/api/services/getFirestoreInstance'
-import { getUserAndVerifyAuth } from '~/modules/api/services/getUserAndVerifyAuth'
+import { db } from '~/modules/api/services/firebase/getFirestoreInstance'
+import { getUserAndVerifyAuth } from '~/modules/api/services/firebase/getUserAndVerifyAuth'
 
 /**
  * ROUTE /api/admin/poll

@@ -2,9 +2,9 @@ import type { NextApiHandler } from 'next'
 import type { EmailIdentifier } from 'firebase-admin/auth'
 import type { Poll } from '~/core/@types/firebase/Poll'
 import { formatDocument } from '~/modules/api/services/formatDocument'
-import { auth } from '~/modules/api/services/getAuthInstance'
-import { db } from '~/modules/api/services/getFirestoreInstance'
-import { getUserAndVerifyAuth } from '~/modules/api/services/getUserAndVerifyAuth'
+import { auth } from '~/modules/api/services/firebase/getAuthInstance'
+import { db } from '~/modules/api/services/firebase/getFirestoreInstance'
+import { getUserAndVerifyAuth } from '~/modules/api/services/firebase/getUserAndVerifyAuth'
 
 /**
  * ROUTE /api/admin/participants
