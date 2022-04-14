@@ -10,16 +10,11 @@ import ChevronLeftOutlineIcon from '@iconify/icons-heroicons-outline/chevron-lef
 import ChevronRightOutlineIcon from '@iconify/icons-heroicons-outline/chevron-right'
 import useSWR from 'swr'
 import dayjs from 'dayjs'
-import { useEffect } from 'react'
 import type { APIResponse } from '~/modules/api/@types/response/APIResponse'
 import type { Poll } from '~/modules/api/@types/response/Poll'
 
 const Page: NextPage = () => {
-  const { data } = useSWR<APIResponse<Poll>>('api/admin/poll')
-
-  useEffect(() => {
-    console.log(data?.payload)
-  }, [data])
+  const { data } = useSWR<APIResponse<Poll>>('/api/admin/poll')
 
   return (
     <>
@@ -43,12 +38,6 @@ const Page: NextPage = () => {
                 <th className="w-5/12 border-b border-slate-300 p-4 pl-8 pt-4 pb-3 text-left font-medium text-slate-400 dark:border-slate-600 dark:text-slate-200">
                   Title
                 </th>
-                {/* <th className="w-2/12 border-b border-slate-300 p-4 pt-4 pb-3 text-center font-medium text-slate-400 dark:border-slate-600 dark:text-slate-200">
-                  Participants
-                </th>
-                <th className="w-2/12 border-b border-slate-300 p-4 pt-4 pb-3 text-center font-medium text-slate-400 dark:border-slate-600 dark:text-slate-200">
-                  Status
-                </th> */}
                 <th className="w-3/12 border-b border-slate-300 p-4 pr-8 pt-4 pb-3 text-right font-medium text-slate-400 dark:border-slate-600 dark:text-slate-200">
                   <span className="sr-only">Action</span>
                 </th>
@@ -76,14 +65,6 @@ const Page: NextPage = () => {
                         {dayjs(poll.end_date).format('DD MMM YYYY HH:mm')}
                       </div>
                     </td>
-                    {/* <td className="border-b border-slate-300 p-4 text-center text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                      10/100
-                    </td>
-                    <td className="border-b border-slate-300 p-4 text-center text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                      <span className="rounded-full bg-green-500 py-1 px-2 text-white">
-                        Active
-                      </span>
-                    </td> */}
                     <td className="border-b border-slate-300 p-4 pr-8 text-slate-500 dark:border-slate-700 dark:text-slate-400">
                       <div className="flex justify-end gap-5">
                         <Link

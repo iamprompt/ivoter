@@ -5,6 +5,7 @@ import type { Option, Poll } from '~/core/@types/firebase/Poll'
 import { formatDocument } from '~/modules/api/services/formatDocument'
 import { db } from '~/modules/api/services/firebase/getFirestoreInstance'
 import { getUserAndVerifyAuth } from '~/modules/api/services/firebase/getUserAndVerifyAuth'
+import { auth } from '~/modules/api/services/firebase/getAuthInstance'
 
 /**
  * ROUTE /api/admin/poll/:id
@@ -31,22 +32,31 @@ const API: NextApiHandler = async (req, res) => {
 
     // GET – Get a poll
     if (method === 'GET') {
+      if (poll.participants) {
+        const users = await auth.getUsers(
+          poll.participants.map((p) => ({ uid: p }))
+        )
+
+        poll.participants = users.users.map((u) => u.email as string)
+      }
+
       return res.status(200).json({ status: 200, payload: poll })
     }
 
     // PATCH – Update a poll
     if (method === 'PATCH') {
-      const { title, description, questions, options, start_date, end_date } =
+      const { title, description, question, options, start_date, end_date } =
         req.body
 
       const modifiedPoll: Poll = {
         title,
         description,
-        questions,
+        question,
         options: (options as Array<Option>).map((option) => ({
           ...option,
           id: option.id || generate(),
         })),
+        participants: poll.participants,
         start_date: Timestamp.fromMillis(new Date(start_date).getTime()),
         end_date: Timestamp.fromMillis(new Date(end_date).getTime()),
       }

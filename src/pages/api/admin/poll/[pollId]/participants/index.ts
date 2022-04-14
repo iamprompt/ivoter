@@ -47,19 +47,19 @@ const API: NextApiHandler = async (req, res) => {
     }
 
     // POST – Upload new participants to a poll
-    if (method === 'PATCH') {
-      const { participants } = req.body as {
-        participants: Array<{ email: string; password: string }>
+    if (method === 'POST') {
+      const { users: _participants } = req.body as {
+        users: Array<{ email: string; password: string }>
       }
 
-      const participantsMap = participants.reduce(
+      const participantsMap = _participants.reduce(
         (acc, { email, password }) => ({ ...acc, [email]: password }),
         {} as Record<string, string>
       )
 
       try {
         const { users, notFound } = await auth.getUsers(
-          participants.map(({ email }) => ({ email }))
+          _participants.map(({ email }) => ({ email }))
         )
 
         const importedUID = [] as Array<string>
@@ -89,6 +89,8 @@ const API: NextApiHandler = async (req, res) => {
           responseType.new.push(email as string)
         }
 
+        // console.log(importedUID)
+
         const pollRef = db.collection('polls').doc(id as string)
 
         // Add imported users to poll
@@ -98,16 +100,14 @@ const API: NextApiHandler = async (req, res) => {
           if (doc.exists) {
             const { participants } = doc.data() as Poll
 
-            if (participants) {
-              const newParticipants = new Set([
-                ...(participants || []),
-                ...importedUID,
-              ])
+            const newParticipants = new Set([
+              ...(participants || []),
+              ...importedUID,
+            ])
 
-              t.update(pollRef, {
-                participants: Array.from(newParticipants),
-              })
-            }
+            t.update(pollRef, {
+              participants: Array.from(newParticipants),
+            })
           }
         })
 

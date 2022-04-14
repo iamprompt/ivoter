@@ -5,3 +5,9 @@
 .firebase-emulator-warning {
   display: none;
 }
+
+@layer components {
+  .txtInput {
+    @apply rounded-lg p-2 outline-none ring-2 ring-gray-200 focus:ring-green-900 focus-visible:ring-green-900;
+  }
+}

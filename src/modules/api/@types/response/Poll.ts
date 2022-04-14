@@ -9,7 +9,7 @@ export interface Option {
 export interface Poll extends PollDate {
   title: string
   description: string
-  questions: string
+  question: string
   options: Array<Option>
   participants?: Array<string>
 }
