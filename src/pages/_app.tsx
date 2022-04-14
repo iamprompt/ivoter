@@ -1,13 +1,26 @@
 import '~/styles/globals.css'
 import type { AppProps } from 'next/app'
+import { useRouter } from 'next/router'
 import { AppLayout } from '~/app/components/layout'
+import { Context } from '~/context/storeon'
+import { AuthWrapper } from '~/app/components/authWrapper'
 
-function _App({ Component, pageProps }: AppProps) {
+function App({ Component, pageProps }: AppProps) {
+  const { asPath } = useRouter()
+
   return (
-    <AppLayout>
-      <Component {...pageProps} />
-    </AppLayout>
+    <Context>
+      <AppLayout>
+        {asPath === '/' ? (
+          <Component {...pageProps} />
+        ) : (
+          <AuthWrapper>
+            <Component {...pageProps} />
+          </AuthWrapper>
+        )}
+      </AppLayout>
+    </Context>
   )
 }
 
-export default _App
+export default App

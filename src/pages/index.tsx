@@ -1,12 +1,12 @@
 import type { NextPage } from 'next'
-import Link from 'next/link'
+import { SigninModule } from '~/modules/auth/signin/components'
 
-const Home: NextPage = () => {
+const Page: NextPage = () => {
   return (
     <div>
-      <Link href={`/test`}>next</Link>
+      <SigninModule />
     </div>
   )
 }
 
-export default Home
+export default Page
