@@ -41,13 +41,13 @@ const API: NextApiHandler = async (req, res) => {
 
     // POST – Create a new poll
     if (req.method === 'POST') {
-      const { title, description, questions, options, start_date, end_date } =
+      const { title, description, question, options, start_date, end_date } =
         req.body
 
       const newPoll: Poll = {
         title,
         description,
-        questions,
+        question,
         options: (options as Array<Option>).map((option) => ({
           ...option,
           id: option.id || generate(),

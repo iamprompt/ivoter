@@ -1,8 +1,6 @@
 import type { FormEventHandler, FunctionComponent } from 'react'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 
-import { useRouter } from 'next/router'
-
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { XCircleIcon } from '@heroicons/react/solid'
 
@@ -10,6 +8,7 @@ import { Icon } from '@iconify/react'
 import MailOutlineIcon from '@iconify/icons-heroicons-outline/mail'
 import LockCloseOutlineIcon from '@iconify/icons-heroicons-outline/lock-closed'
 // import ExclamationCircleOutlineIcon from '@iconify/icons-heroicons-outline/exclamation-circle'
+import { useRouter } from 'next/router'
 import { useStoreon } from '../../../../context/storeon'
 import { getAuthInstance } from '~/core/services/firebase/getAuthInstance'
 
@@ -37,13 +36,16 @@ export const SigninModule: FunctionComponent = () => {
       const password = passwordRef.current?.value || ''
 
       try {
-        await signInWithEmailAndPassword(getAuthInstance(), email, password)
-
-        auth!.getIdTokenResult().then((res) => {
+        const a = await signInWithEmailAndPassword(
+          getAuthInstance(),
+          email,
+          password
+        )
+        a.user.getIdTokenResult().then((res) => {
           if (res.claims.role === 'admin') {
             push('/admin')
           } else {
-            push('/polls')
+            push('/poll')
           }
         })
       } catch (e) {
@@ -55,9 +57,7 @@ export const SigninModule: FunctionComponent = () => {
     [emailRef, passwordRef]
   )
 
-  useEffect(() => {
-    console.log(auth?.email)
-  }, [auth])
+  useEffect(() => {}, [auth])
 
   return (
     <Fragment>

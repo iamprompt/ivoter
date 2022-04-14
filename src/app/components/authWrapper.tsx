@@ -13,7 +13,7 @@ export const AuthWrapper: FunctionComponent = (props) => {
   } = useStoreon('user')
 
   useEffect(() => {
-    if (auth === null) {
+    if (!auth) {
       push('/')
     }
   }, [auth])

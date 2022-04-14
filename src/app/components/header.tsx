@@ -3,28 +3,31 @@ import clsx from 'clsx'
 import type { FunctionComponent } from 'react'
 import { useEffect, useState } from 'react'
 import type { IdTokenResult } from 'firebase/auth'
-import type { LinkItem } from './headerNavItems'
-import { HeaderNavItems, LinkItemType } from './headerNavItems'
+import { signOut } from 'firebase/auth'
+// import type { LinkItem } from './headerNavItems'
+// import { HeaderNavItems, LinkItemType } from './headerNavItems'
+import { useRouter } from 'next/router'
 import Logo from './icon/Logo'
 import { useStoreon } from '~/context/storeon'
+import { getAuthInstance } from '~/core/services/firebase/getAuthInstance'
 
-const Item: LinkItem[] = [
-  {
-    type: LinkItemType.INTERNAL,
-    href: '/docs/installation',
-    label: 'Docs',
-  },
-  {
-    type: LinkItemType.EXTERNAL,
-    href: 'https://tailwindui.com',
-    label: 'Components',
-  },
-  {
-    type: LinkItemType.INTERNAL,
-    href: '/blog',
-    label: 'Blog',
-  },
-]
+// const Item: LinkItem[] = [
+//   {
+//     type: LinkItemType.INTERNAL,
+//     href: '/docs/installation',
+//     label: 'Docs',
+//   },
+//   {
+//     type: LinkItemType.EXTERNAL,
+//     href: 'https://tailwindui.com',
+//     label: 'Components',
+//   },
+//   {
+//     type: LinkItemType.INTERNAL,
+//     href: '/blog',
+//     label: 'Blog',
+//   },
+// ]
 
 interface HeaderProps {
   hasNav?: boolean
@@ -39,7 +42,9 @@ export const Header: FunctionComponent<HeaderProps> = ({
   onNavToggle,
   className,
 }) => {
+  const { push } = useRouter()
   const {
+    dispatch,
     user: { auth },
   } = useStoreon('user')
 
@@ -70,7 +75,21 @@ export const Header: FunctionComponent<HeaderProps> = ({
               <div className="relative ml-auto hidden items-center lg:flex">
                 <nav className="text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">
                   <ul className="flex space-x-8">
-                    <HeaderNavItems items={Item} />
+                    {/* <HeaderNavItems items={Item} /> */}
+                    {auth && (
+                      <li>
+                        <span
+                          onClick={() => {
+                            signOut(getAuthInstance())
+                            dispatch('user/auth', null)
+                            push('/')
+                          }}
+                          className="cursor-pointer hover:text-green-500 dark:hover:text-green-400"
+                        >
+                          Sign out
+                        </span>
+                      </li>
+                    )}
                   </ul>
                 </nav>
               </div>

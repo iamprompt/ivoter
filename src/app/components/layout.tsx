@@ -10,7 +10,7 @@ import { useStoreon } from '~/context/storeon'
 import { createApiInstance } from '~/core/services/createApiInstance'
 
 export const AppLayout: FunctionComponent = ({ children }) => {
-  const { events } = useRouter()
+  const { events, asPath, push } = useRouter()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const {
     user: { auth },
@@ -37,6 +37,18 @@ export const AppLayout: FunctionComponent = ({ children }) => {
       events.off('routeChangeError', routeChangeEnd)
     }
   }, [])
+
+  useEffect(() => {
+    if (['/'].includes(asPath) && auth !== undefined && auth !== null) {
+      auth.getIdTokenResult().then((res) => {
+        if (res.claims.role === 'admin') {
+          push('/admin')
+        } else {
+          push('/poll')
+        }
+      })
+    }
+  }, [asPath, auth])
 
   return (
     <SWRConfig
