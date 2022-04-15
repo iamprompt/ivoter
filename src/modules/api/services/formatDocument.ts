@@ -3,6 +3,7 @@ import { Timestamp } from 'firebase-admin/firestore'
 export const formatDocument = (
   doc: Record<string, any>,
   ignoredFields: Array<string> = [],
+  dateSuffix = '_date',
   dateFormatting = true
 ) => {
   const formattedDoc: Record<string, any> = {}
@@ -12,7 +13,7 @@ export const formatDocument = (
       continue
     }
 
-    if (dateFormatting && key.endsWith('_date')) {
+    if (dateFormatting && key.endsWith(dateSuffix)) {
       if (doc[key] instanceof Date) {
         formattedDoc[key] = (doc[key] as Date).valueOf()
       } else if (doc[key] instanceof Timestamp) {

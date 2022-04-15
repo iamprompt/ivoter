@@ -28,11 +28,10 @@ const API: NextApiHandler = async (req, res) => {
       const polls = pollsSnapshot.reduce((acc, doc) => {
         return {
           ...acc,
-          [doc.id]: formatDocument(
-            doc.data() as Poll,
-            ['participants', 'options'],
-            true
-          ),
+          [doc.id]: formatDocument(doc.data() as Poll, [
+            'participants',
+            'options',
+          ]),
         }
       }, Promise.resolve({}) as Promise<Record<string, Poll>>)
 

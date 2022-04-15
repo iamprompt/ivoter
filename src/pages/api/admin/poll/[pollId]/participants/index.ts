@@ -5,6 +5,7 @@ import { formatDocument } from '~/modules/api/services/formatDocument'
 import { auth } from '~/modules/api/services/firebase/getAuthInstance'
 import { db } from '~/modules/api/services/firebase/getFirestoreInstance'
 import { getUserAndVerifyAuth } from '~/modules/api/services/firebase/getUserAndVerifyAuth'
+import type { Ballot, Ballots } from '~/core/@types/firebase/Ballot'
 
 /**
  * ROUTE /api/admin/participants
@@ -15,17 +16,35 @@ const API: NextApiHandler = async (req, res) => {
   const { query, method } = req
   const { pollId: id } = query
 
+  const pollRef = db.collection('polls').doc(id as string)
+  const ballotsRef = pollRef.collection('ballots')
+
   // Get and Verify User
   try {
     await getUserAndVerifyAuth(req.headers.authorization as string, ['admin'])
 
     // GET – Get all participants of a poll
     if (method === 'GET') {
-      const poll = (await db
-        .collection('polls')
-        .doc(id as string)
+      const poll = (await pollRef
         .get()
         .then((snapshot) => formatDocument(snapshot.data() as Poll))) as Poll
+
+      const ballotsSnapshot = await ballotsRef.get()
+      const ballots = ballotsSnapshot.docs.reduce((acc, doc) => {
+        return {
+          ...acc,
+          [doc.id]: formatDocument(
+            {
+              ...(doc.data() as Ballot),
+              option: poll.options.find(
+                (option) => option.id === (doc.data() as Ballot).optionId
+              )?.name,
+            },
+            [],
+            'timestamp'
+          ) as Ballot,
+        }
+      }, {} as Ballots)
 
       if (poll.participants) {
         const participantsMeta = await Promise.all(
@@ -36,6 +55,7 @@ const API: NextApiHandler = async (req, res) => {
               uid,
               email: u.email,
               displayName: u.displayName,
+              ballot: ballots[uid],
             }
           })
         )
@@ -88,10 +108,6 @@ const API: NextApiHandler = async (req, res) => {
           importedUID.push(uid)
           responseType.new.push(email as string)
         }
-
-        // console.log(importedUID)
-
-        const pollRef = db.collection('polls').doc(id as string)
 
         // Add imported users to poll
         await db.runTransaction(async (t) => {
