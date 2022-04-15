@@ -10,11 +10,12 @@ import ChevronLeftOutlineIcon from '@iconify/icons-heroicons-outline/chevron-lef
 import ChevronRightOutlineIcon from '@iconify/icons-heroicons-outline/chevron-right'
 import useSWR from 'swr'
 import dayjs from 'dayjs'
+import type { AxiosError } from 'axios'
 import type { APIResponse } from '~/modules/api/@types/response/APIResponse'
 import type { Poll } from '~/modules/api/@types/response/Poll'
 
 const Page: NextPage = () => {
-  const { data } = useSWR<APIResponse<Poll>>('/api/admin/poll')
+  const { data } = useSWR<APIResponse<Poll>, AxiosError>('/api/admin/poll')
 
   return (
     <>

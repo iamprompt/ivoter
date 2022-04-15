@@ -17,6 +17,7 @@ import {
   Tooltip,
 } from 'chart.js'
 import dayjs from 'dayjs'
+import type { AxiosError } from 'axios'
 import type { APIResponse } from '~/modules/api/@types/response/APIResponse'
 import type { Poll } from '~/modules/api/@types/response/Poll'
 
@@ -27,12 +28,14 @@ const Page: NextPage = () => {
 
   const pollId = useMemo(() => query.pollId as string, [query])
 
-  const { data, error } = useSWR<APIResponse<Poll>>(
+  const { data, error } = useSWR<APIResponse<Poll>, AxiosError>(
     pollId ? `/api/admin/poll/${pollId}` : null
   )
 
-  if (!data && error) {
-    return <Error statusCode={404} />
+  console.log(error)
+
+  if (error) {
+    return <Error statusCode={error.response?.status || 400} />
   }
 
   if (!data) {
