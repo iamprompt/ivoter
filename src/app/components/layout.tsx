@@ -13,8 +13,10 @@ export const AppLayout: FunctionComponent = ({ children }) => {
   const { events, asPath, push } = useRouter()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const {
+    dispatch,
     user: { auth },
-  } = useStoreon('user')
+    next: { path },
+  } = useStoreon('user', 'next')
 
   useAuth()
 
@@ -39,12 +41,18 @@ export const AppLayout: FunctionComponent = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (['/'].includes(asPath) && auth !== undefined && auth !== null) {
+    if (asPath === '/' && auth !== undefined && auth !== null) {
       auth.getIdTokenResult().then((res) => {
-        if (res.claims.role === 'admin') {
-          push('/admin')
+        if (path === undefined) {
+          if (res.claims.role === 'admin') {
+            push('/admin')
+          } else {
+            push('/poll')
+          }
         } else {
-          push('/poll')
+          const targetPath = path
+          dispatch('next/unset')
+          push(targetPath)
         }
       })
     }
@@ -68,7 +76,6 @@ export const AppLayout: FunctionComponent = ({ children }) => {
         <CenterSpinner />
       ) : (
         <>
-          {/* <CenterSpinner /> */}
           <Suspense fallback={<CenterSpinner />}>
             <div className="relative">
               <Header className="max-w-screen-xl" />

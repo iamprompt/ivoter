@@ -9,11 +9,13 @@ import { CenterSpinner } from '../../core/components/centerSpinner'
 export const AuthWrapper: FunctionComponent = (props) => {
   const { push } = useRouter()
   const {
+    dispatch,
     user: { auth },
-  } = useStoreon('user')
+  } = useStoreon('user', 'next')
 
   useEffect(() => {
     if (!auth) {
+      dispatch('next/set', window.location.pathname)
       push('/')
     }
   }, [auth])

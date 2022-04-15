@@ -3,11 +3,16 @@ import { createContext } from 'react'
 
 import { createStoreon } from 'storeon'
 import { customContext } from 'storeon/react'
+import type { NextEvent, NextStore } from './store/next'
+import { next } from './store/next'
 
 import type { UserEvent, UserStore } from './store/user'
 import { user } from './store/user'
 
-export const store = createStoreon<UserStore, UserEvent>([user])
+export const store = createStoreon<
+  UserStore & NextStore,
+  UserEvent & NextEvent
+>([user, next])
 
 const StoreonContext = createContext(store)
 
