@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import clsx from 'clsx'
 import type { FunctionComponent } from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { IdTokenResult } from 'firebase/auth'
 import { signOut } from 'firebase/auth'
 // import type { LinkItem } from './headerNavItems'
 // import { HeaderNavItems, LinkItemType } from './headerNavItems'
 import { useRouter } from 'next/router'
+import { Icon } from '@iconify/react'
+import logoutIcon from '@iconify/icons-heroicons-outline/logout'
 import Logo from './icon/Logo'
 import { useStoreon } from '~/context/storeon'
 import { getAuthInstance } from '~/core/services/firebase/getAuthInstance'
@@ -30,18 +32,10 @@ import { getAuthInstance } from '~/core/services/firebase/getAuthInstance'
 // ]
 
 interface HeaderProps {
-  hasNav?: boolean
-  navIsOpen?: boolean
-  onNavToggle?: (v: boolean) => void
   className?: string
 }
 
-export const Header: FunctionComponent<HeaderProps> = ({
-  hasNav = false,
-  navIsOpen,
-  onNavToggle,
-  className,
-}) => {
+export const Header: FunctionComponent<HeaderProps> = ({ className }) => {
   const { push } = useRouter()
   const {
     dispatch,
@@ -55,6 +49,12 @@ export const Header: FunctionComponent<HeaderProps> = ({
       setIdTokenResult(result)
     })
   }, [auth])
+
+  const handleSignOut = useCallback(async () => {
+    signOut(getAuthInstance())
+    dispatch('user/auth', null)
+    push('/')
+  }, [])
 
   return (
     <>
@@ -72,49 +72,35 @@ export const Header: FunctionComponent<HeaderProps> = ({
                   <Logo className="h-9 w-auto text-green-500" />
                 </a>
               </Link>
-              <div className="relative ml-auto hidden items-center lg:flex">
+              <div className="relative ml-auto flex items-center">
                 <nav className="text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">
                   <ul className="flex space-x-8">
                     {/* <HeaderNavItems items={Item} /> */}
                     {auth && (
-                      <li>
-                        <span
-                          onClick={() => {
-                            signOut(getAuthInstance())
-                            dispatch('user/auth', null)
-                            push('/')
-                          }}
-                          className="cursor-pointer hover:text-green-500 dark:hover:text-green-400"
+                      <>
+                        <li className="hidden lg:block">
+                          <span
+                            onClick={handleSignOut}
+                            className="cursor-pointer hover:text-green-500 dark:hover:text-green-400"
+                          >
+                            Sign out
+                          </span>
+                        </li>
+                        <button
+                          type="button"
+                          onClick={handleSignOut}
+                          className="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 lg:hidden"
                         >
-                          Sign out
-                        </span>
-                      </li>
+                          <span className="sr-only">Navigation</span>
+                          <Icon icon={logoutIcon} className="text-xl" />
+                        </button>
+                      </>
                     )}
                   </ul>
                 </nav>
               </div>
             </div>
           </div>
-          {hasNav && (
-            <div className="flex items-center border-b border-slate-900/10 p-4 dark:border-slate-50/[0.06] lg:hidden">
-              <button
-                type="button"
-                onClick={() => onNavToggle?.(!navIsOpen)}
-                className="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
-              >
-                <span className="sr-only">Navigation</span>
-                <svg width="24" height="24">
-                  <path
-                    d="M5 6h14M5 12h14M5 18h14"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </>
