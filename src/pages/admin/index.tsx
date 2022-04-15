@@ -11,6 +11,7 @@ import ChevronRightOutlineIcon from '@iconify/icons-heroicons-outline/chevron-ri
 import useSWR from 'swr'
 import dayjs from 'dayjs'
 import type { AxiosError } from 'axios'
+import { Fragment } from 'react'
 import type { APIResponse } from '~/modules/api/@types/response/APIResponse'
 import type { Poll } from '~/modules/api/@types/response/Poll'
 
@@ -24,7 +25,7 @@ const Page: NextPage = () => {
   }
 
   return (
-    <>
+    <Fragment>
       <div className="pb-4 text-4xl font-bold">
         <h1>Admin Dashboard</h1>
       </div>
@@ -179,7 +180,7 @@ const Page: NextPage = () => {
           </div>
         </div>
       </div>
-    </>
+    </Fragment>
   )
 }
 
