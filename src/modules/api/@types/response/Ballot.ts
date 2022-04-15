@@ -1,5 +1,5 @@
 export interface Ballot {
-  option: string
+  name: string
   optionId: string
   timestamp: number
 }

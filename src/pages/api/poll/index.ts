@@ -3,6 +3,7 @@ import type { Poll } from '~/core/@types/firebase/Poll'
 import { formatDocument } from '~/modules/api/services/formatDocument'
 import { db } from '~/modules/api/services/firebase/getFirestoreInstance'
 import { getUserAndVerifyAuth } from '~/modules/api/services/firebase/getUserAndVerifyAuth'
+import { dateInRange } from '~/modules/api/services/dateInRange'
 
 /**
  * ROUTE /api/poll
@@ -23,21 +24,32 @@ const API: NextApiHandler = async (req, res) => {
         .get()
         .then((snapshot) => snapshot.docs)
 
+      // console.log(
+      //   pollsSnapshot.map((doc) => formatDocument(doc.data() as Poll))
+      // )
+
       const polls = await pollsSnapshot.reduce(async (acc, doc) => {
         // Check if user already participated in poll
         const userBallot = await doc.ref.collection('ballots').doc(u.uid).get()
 
-        if (userBallot.exists) {
-          return acc
+        const formattedPoll = formatDocument(doc.data() as Poll, [
+          'participants',
+          'options',
+        ]) as Poll
+
+        const isDateInRange = dateInRange(
+          formattedPoll.start_date as number,
+          formattedPoll.end_date as number
+        )
+
+        if (!isDateInRange || userBallot.exists) {
+          return await acc
         }
 
         return {
-          ...acc,
-          [doc.id]: formatDocument(doc.data() as Poll, [
-            'participants',
-            'options',
-          ]),
-        }
+          ...(await acc),
+          [doc.id]: formattedPoll,
+        } as Record<string, Poll>
       }, Promise.resolve({}) as Promise<Record<string, Poll>>)
 
       return res.status(200).json({ status: 200, payload: polls })

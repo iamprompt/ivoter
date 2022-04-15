@@ -4,6 +4,7 @@ import type { Poll } from '~/core/@types/firebase/Poll'
 import { formatDocument } from '~/modules/api/services/formatDocument'
 import { db } from '~/modules/api/services/firebase/getFirestoreInstance'
 import { getUserAndVerifyAuth } from '~/modules/api/services/firebase/getUserAndVerifyAuth'
+import { dateInRange } from '~/modules/api/services/dateInRange'
 
 /**
  * ROUTE /api/poll/:id
@@ -25,7 +26,22 @@ const API: NextApiHandler = async (req, res) => {
 
     // Check if user can participate in poll
     if (!poll.participants!.includes(u.uid)) {
-      return res.status(403).json({ status: 403, payload: 'Forbidden' })
+      return res.status(403).json({
+        status: 403,
+        payload: 'The user do not have permission to access a poll',
+      })
+    }
+
+    const isDateInRange = dateInRange(
+      poll.start_date as number,
+      poll.end_date as number
+    )
+
+    if (!isDateInRange) {
+      return res.status(403).json({
+        status: 403,
+        payload: 'The poll is unavailable at this time',
+      })
     }
 
     const ballotRef = pollRef.collection('ballots').doc(u.uid)
@@ -36,7 +52,9 @@ const API: NextApiHandler = async (req, res) => {
       .then((snapshot) => snapshot.exists)
 
     if (isUserBallotExist) {
-      return res.status(403).json({ status: 403, payload: 'Forbidden' })
+      return res
+        .status(403)
+        .json({ status: 403, payload: 'The user has already voted' })
     }
 
     // GET – Get a poll

@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import useSWR from 'swr'
-import Error from 'next/error'
 import { Icon } from '@iconify/react'
 import ArrowRightIcon from '@iconify/icons-heroicons-outline/arrow-right'
 import PencilIcon from '@iconify/icons-heroicons-outline/pencil'
@@ -20,6 +19,7 @@ import dayjs from 'dayjs'
 import type { AxiosError } from 'axios'
 import type { APIResponse } from '~/modules/api/@types/response/APIResponse'
 import type { Poll } from '~/modules/api/@types/response/Poll'
+import type { StatsResponse } from '~/modules/api/@types/response/Stats'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip)
 
@@ -28,15 +28,13 @@ const Page: NextPage = () => {
 
   const pollId = useMemo(() => query.pollId as string, [query])
 
-  const { data, error } = useSWR<APIResponse<Poll>, AxiosError>(
+  const { data } = useSWR<APIResponse<Poll>, AxiosError>(
     pollId ? `/api/admin/poll/${pollId}` : null
   )
 
-  console.log(error)
-
-  if (error) {
-    return <Error statusCode={error.response?.status || 400} />
-  }
+  const { data: stats } = useSWR<APIResponse<StatsResponse>>(
+    pollId ? `/api/admin/poll/${pollId}/stats` : null
+  )
 
   if (!data) {
     return <div>Loading...</div>
@@ -201,51 +199,64 @@ const Page: NextPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-span-1 lg:col-span-2">
-          <div className="flex flex-row items-end justify-between pb-1 text-2xl font-bold text-green-500">
-            <span>Statistics</span>
+        {stats && stats.payload.summary && (
+          <div className="col-span-1 lg:col-span-2">
+            <div className="flex flex-row items-end justify-between pb-1 text-2xl font-bold text-green-500">
+              <span>Statistics</span>
+              <div>
+                <Link
+                  href={{
+                    pathname: '/admin/poll/[pollId]/stats',
+                    query: {
+                      pollId,
+                    },
+                  }}
+                >
+                  <a className="text-sm font-normal text-green-500">
+                    View Details
+                    <Icon
+                      icon={ArrowRightIcon}
+                      className="ml-1 inline-block"
+                      inline
+                    />
+                  </a>
+                </Link>
+              </div>
+            </div>
             <div>
-              <Link
-                href={{
-                  pathname: '/admin/poll/[pollId]/stats',
-                  query: {
-                    pollId,
+              <Bar
+                options={{
+                  responsive: true,
+                  plugins: {
+                    tooltip: {
+                      displayColors: false,
+                    },
                   },
                 }}
-              >
-                <a className="text-sm font-normal text-green-500">
-                  View Details
-                  <Icon
-                    icon={ArrowRightIcon}
-                    className="ml-1 inline-block"
-                    inline
-                  />
-                </a>
-              </Link>
+                data={{
+                  labels: stats.payload.summary.options.map(
+                    (stat) => stat.name
+                  ),
+                  datasets: [
+                    {
+                      data: stats.payload.summary.options.map(
+                        (stat) => stat.count
+                      ),
+                      backgroundColor: [
+                        '#FFAABB',
+                        '#FFBBAA',
+                        '#FFCCBB',
+                        '#FFDDAA',
+                        '#FFEEBB',
+                        '#FFFFAA',
+                      ],
+                    },
+                  ],
+                }}
+              />
             </div>
           </div>
-          <div>
-            <Bar
-              options={{
-                responsive: true,
-                plugins: {
-                  tooltip: {
-                    displayColors: false,
-                  },
-                },
-              }}
-              data={{
-                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-                datasets: [
-                  {
-                    data: [12, 19, 3, 5, 2, 3],
-                    backgroundColor: ['#000000'],
-                  },
-                ],
-              }}
-            />
-          </div>
-        </div>
+        )}
       </div>
     </>
   )

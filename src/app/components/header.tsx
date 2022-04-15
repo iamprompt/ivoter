@@ -40,7 +40,7 @@ export const Header: FunctionComponent<HeaderProps> = ({ className }) => {
   const {
     dispatch,
     user: { auth },
-  } = useStoreon('user')
+  } = useStoreon('user', 'next')
 
   const [idTokenResult, setIdTokenResult] = useState<IdTokenResult>()
 
@@ -53,6 +53,7 @@ export const Header: FunctionComponent<HeaderProps> = ({ className }) => {
   const handleSignOut = useCallback(async () => {
     signOut(getAuthInstance())
     dispatch('user/auth', null)
+    dispatch('next/unset')
     push('/')
   }, [])
 

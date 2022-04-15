@@ -17,7 +17,7 @@ const Page: NextPage = () => {
       <div className="my-5 flex items-end justify-between">
         <div className="text-2xl font-bold">Select Poll to vote</div>
       </div>
-      <div className="w-full bg-gray-50 p-5">
+      <div className="w-full space-y-5 bg-gray-50 p-5">
         {data &&
           Object.entries(data.payload).map(([pollId, poll]) => (
             <Link
