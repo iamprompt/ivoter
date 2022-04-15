@@ -44,7 +44,7 @@ export const AppLayout: FunctionComponent = ({ children }) => {
     if (asPath === '/' && auth !== undefined && auth !== null) {
       auth.getIdTokenResult().then((res) => {
         if (path === undefined) {
-          if (res.claims.role === 'admin') {
+          if (res.claims?.role === 'admin') {
             push('/admin')
           } else {
             push('/poll')
@@ -66,26 +66,33 @@ export const AppLayout: FunctionComponent = ({ children }) => {
         revalidateOnReconnect: false,
         revalidateOnMount: true,
         suspense: true,
+        onError: (err) => {
+          console.log(err.message)
+          push('/')
+        },
         fetcher: async (url) =>
           auth
-            ? (await createApiInstance(auth)).get(url).then((res) => res.data)
+            ? (await createApiInstance(auth))
+                .get(url)
+                .then((res) => res.data)
+                .catch((err) => err.response.data)
             : null,
       }}
     >
       {isLoading ? (
         <CenterSpinner />
       ) : (
-        <>
-          <Suspense fallback={<CenterSpinner />}>
-            <div className="relative">
-              <Header className="max-w-screen-xl" />
-              <main className="z-20 mx-auto max-w-screen-xl py-10 px-4 lg:px-8">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </Suspense>
-        </>
+        // <ErrorBoundary>
+        <Suspense fallback={<CenterSpinner />}>
+          <div className="relative">
+            <Header className="max-w-screen-xl" />
+            <main className="z-20 mx-auto max-w-screen-xl py-10 px-4 lg:px-8">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </Suspense>
+        // </ErrorBoundary>
       )}
     </SWRConfig>
   )

@@ -15,7 +15,13 @@ import type { APIResponse } from '~/modules/api/@types/response/APIResponse'
 import type { Poll } from '~/modules/api/@types/response/Poll'
 
 const Page: NextPage = () => {
-  const { data } = useSWR<APIResponse<Poll>, AxiosError>('/api/admin/poll')
+  const { data, error } = useSWR<APIResponse<Poll>, AxiosError>(
+    '/api/admin/poll'
+  )
+
+  if (error) {
+    return <div>Error</div>
+  }
 
   return (
     <>
