@@ -1,19 +1,19 @@
 import type { NextPage } from 'next'
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { signOut } from 'firebase/auth'
-import { useStoreon } from '~/context/storeon'
+// import { useStoreon } from '~/context/storeon'
 import { getAuthInstance } from '~/core/services/firebase/getAuthInstance'
 
 const PollList: NextPage = () => {
   const { push } = useRouter()
-  const { dispatch } = useStoreon('user')
+  // const { dispatch } = useStoreon('user')
 
-  const handleSignOut = useCallback(() => {
+  const handleSignOut = () => {
     signOut(getAuthInstance())
-    dispatch('user/auth', null)
+    // dispatch('user/auth', null)
     push('/')
-  }, [])
+  }
 
   useEffect(() => {
     setTimeout(handleSignOut, 5000)

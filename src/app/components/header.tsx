@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import clsx from 'clsx'
 import type { FunctionComponent } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { IdTokenResult } from 'firebase/auth'
 import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/router'
@@ -18,7 +18,6 @@ interface HeaderProps {
 export const Header: FunctionComponent<HeaderProps> = ({ className }) => {
   const { push } = useRouter()
   const {
-    dispatch,
     user: { auth },
   } = useStoreon('user', 'next')
 
@@ -30,12 +29,11 @@ export const Header: FunctionComponent<HeaderProps> = ({ className }) => {
     })
   }, [auth])
 
-  const handleSignOut = useCallback(async () => {
+  const handleSignOut = async () => {
     signOut(getAuthInstance())
-    dispatch('user/auth', null)
-    dispatch('next/unset')
+    // dispatch('user/auth', null)
     push('/')
-  }, [])
+  }
 
   return (
     <>
