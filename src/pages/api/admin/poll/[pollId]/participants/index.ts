@@ -1,5 +1,7 @@
 import type { NextApiHandler } from 'next'
 import type { EmailIdentifier } from 'firebase-admin/auth'
+import generatePassword from 'omgopass'
+import { AES, mode, pad } from 'crypto-js'
 import type { Poll } from '~/core/@types/firebase/Poll'
 import { formatDocument } from '~/modules/api/services/formatDocument'
 import { auth } from '~/modules/api/services/firebase/getAuthInstance'
@@ -42,51 +44,37 @@ const API: NextApiHandler = async (req, res) => {
 
         return res.status(200).json({ status: 200, payload: participantsMeta })
       }
-
       return res.status(404).json({ status: 404, payload: {} })
     }
 
     // POST – Upload new participants to a poll
     if (method === 'POST') {
       const { users: _participants } = req.body as {
-        users: Array<{ email: string; password: string }>
+        users: Array<{ email: string }>
       }
 
-      const participantsMap = _participants.reduce(
-        (acc, { email, password }) => ({ ...acc, [email]: password }),
-        {} as Record<string, string>
-      )
-
       try {
-        const { users, notFound } = await auth.getUsers(
-          _participants.map(({ email }) => ({ email }))
-        )
+        const { users, notFound } = await auth.getUsers(_participants)
 
-        const importedUID = [] as Array<string>
-        const responseType = {
-          new: [],
-          existed: [],
-        } as Record<'new' | 'existed', Array<string>>
+        const users_import: any[] = []
 
         // Existing users
         for (const user of users) {
           const { uid, email } = user
-          importedUID.push(uid)
-          responseType.existed.push(email as string)
+          users_import.push({ uid, email })
         }
 
         // New users
         for (const user of notFound as EmailIdentifier[]) {
           const { email } = user
-          const password = participantsMap[email]
+          const password = generatePassword()
 
           const { uid } = await auth.createUser({
             email,
             password,
           })
 
-          importedUID.push(uid)
-          responseType.new.push(email as string)
+          users_import.push({ uid, email, password })
         }
 
         // Add imported users to poll
@@ -98,7 +86,7 @@ const API: NextApiHandler = async (req, res) => {
 
             const newParticipants = new Set([
               ...(participants || []),
-              ...importedUID,
+              ...users_import.map((u) => u.uid),
             ])
 
             t.update(pollRef, {
@@ -107,7 +95,25 @@ const API: NextApiHandler = async (req, res) => {
           }
         })
 
-        return res.status(200).json({ status: 200, payload: responseType })
+        console.log(users_import)
+
+        const encryptedUsersImport = users_import.map((u) => {
+          console.log(process.env.PASSWORD_ENCRYPTION_KEY)
+
+          return {
+            ...u,
+            password: u.password
+              ? AES.encrypt(u.password, process.env.PASSWORD_ENCRYPTION_KEY!, {
+                  mode: mode.ECB,
+                  padding: pad.Pkcs7,
+                }).toString()
+              : undefined,
+          }
+        })
+
+        return res
+          .status(200)
+          .json({ status: 200, payload: encryptedUsersImport })
       } catch (e) {
         return res.status(500).json({ status: 500, payload: 'Error' })
       }

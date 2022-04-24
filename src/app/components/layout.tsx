@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import type { FunctionComponent } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
 import { Suspense, useEffect, useState } from 'react'
 import { SWRConfig } from 'swr'
 import { Header } from './header'
@@ -9,7 +9,9 @@ import { useAuth } from '~/core/services/useAuth'
 import { useStoreon } from '~/context/storeon'
 import { createApiInstance } from '~/core/services/createApiInstance'
 
-export const AppLayout: FunctionComponent = ({ children }) => {
+export const AppLayout: FunctionComponent<{ children: ReactNode }> = ({
+  children,
+}) => {
   const { events, asPath, push } = useRouter()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const {

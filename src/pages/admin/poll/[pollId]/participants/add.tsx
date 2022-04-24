@@ -9,47 +9,56 @@ import TrashOutlineIcon from '@iconify/icons-heroicons-outline/trash'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import useSWR from 'swr'
+import type { AxiosError } from 'axios'
+import { unparse } from 'papaparse'
 import { useStoreon } from '~/context/storeon'
 import { createApiInstance } from '~/core/services/createApiInstance'
 import { FileDropZone } from '~/modules/admin/poll/participants/components/fileDropZone'
 import type { APIResponse } from '~/modules/api/@types/response/APIResponse'
+import type { Poll } from '~/modules/api/@types/response/Poll'
 
 interface NewUserMeta {
+  email: string
+}
+
+interface UsersResponse {
+  uid: string
   email: string
   password: string
 }
 
 const Page: NextPage = () => {
-  const { query, reload } = useRouter()
+  const { query } = useRouter()
+  const { pollId } = query
   const {
     user: { auth },
   } = useStoreon('user')
+
+  const { data } = useSWR<APIResponse<Poll>, AxiosError>(
+    pollId ? `/api/admin/poll/${pollId}` : null
+  )
 
   const [isShowDropZone, setIsShowDropZone] = useState<boolean>(true)
   const [isShowAccountForm, setIsShowAccountForm] = useState<boolean>(true)
   const [isShowAccountSummary, setIsShowAccountSummary] =
     useState<boolean>(false)
 
-  const [accountSummary, setAccountSummary] = useState<Record<
-    'new' | 'existed',
-    Array<string>
-  > | null>(null)
+  const [accountSummary, setAccountSummary] = useState<UsersResponse[]>([])
 
   const formik = useFormik({
     initialValues: {
-      users: [{ email: '', password: '' }],
+      users: [{ email: '' }],
     },
     onSubmit: async (values) => {
       console.log(values)
 
       const { data } = await (
         await createApiInstance(auth!)
-      ).post<APIResponse<Record<'new' | 'existed', Array<string>>>>(
+      ).post<APIResponse<UsersResponse[]>>(
         `/api/admin/poll/${query.pollId}/participants`,
         values
       )
-
-      // console.log(data)
 
       setAccountSummary(data.payload)
       setIsShowDropZone(false)
@@ -58,10 +67,16 @@ const Page: NextPage = () => {
     },
   })
 
+  const csvFileUrl = () => {
+    const csv = unparse<UsersResponse>(accountSummary, { header: true })
+    const csvFile = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    return csvFile
+  }
+
   return (
     <>
       <div className="pb-4 text-4xl font-bold">
-        <h1>Add Participants - []</h1>
+        <h1>Add Participants{data ? `  - ${data?.payload.title}` : ''}</h1>
       </div>
 
       {isShowDropZone && (
@@ -72,12 +87,9 @@ const Page: NextPage = () => {
               values: {
                 ...state.values,
                 users: [
-                  ...state.values.users.filter(
-                    (_) => _.email !== '' || _.password !== ''
-                  ),
+                  ...state.values.users.filter((_) => _.email !== ''),
                   ...e.map((d: NewUserMeta) => ({
                     email: d.email,
-                    password: d.password,
                   })),
                 ],
               },
@@ -103,13 +115,6 @@ const Page: NextPage = () => {
                           name={`users.${index}.email`}
                           onChange={formik.handleChange}
                           placeholder={`Email`}
-                          className="txtInput w-1/2"
-                        />
-                        <input
-                          value={user.password}
-                          name={`users.${index}.password`}
-                          onChange={formik.handleChange}
-                          placeholder={`Password`}
                           className="txtInput w-1/2"
                         />
 
@@ -167,43 +172,19 @@ const Page: NextPage = () => {
                     <th className="p-4 pt-4 pb-3 text-center font-medium text-slate-400 dark:border-slate-600 dark:text-slate-200">
                       Email
                     </th>
-                    <th className="p-4 pt-4 pb-3 text-center font-medium text-slate-400 dark:border-slate-600 dark:text-slate-200">
-                      Password
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white/90">
-                  {Object.entries(accountSummary).map(([type, accounts]) => (
+                  {accountSummary.map((account, index) => (
                     <>
-                      {accounts.map((account, index) => (
-                        <tr
-                          key={`${type}-${index}`}
-                          className={clsx(
-                            'divide-x divide-slate-200 ',
-                            type === 'new'
-                              ? 'bg-green-100 hover:bg-green-200/75'
-                              : 'hover:bg-gray-200/50'
-                          )}
-                        >
-                          <td className="p-4 text-center text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                            {account}
-                          </td>
-                          <td
-                            className={clsx(
-                              'p-4 text-center  dark:border-slate-700 dark:text-slate-400',
-                              type === 'new'
-                                ? 'text-blue-500'
-                                : 'text-slate-500'
-                            )}
-                          >
-                            {type === 'new'
-                              ? formik.values.users.find(
-                                  (u) => u.email === account
-                                )?.password
-                              : 'Use Previous Password'}
-                          </td>
-                        </tr>
-                      ))}
+                      <tr
+                        key={`${index}-${account.email}`}
+                        className="divide-x divide-slate-200"
+                      >
+                        <td className="p-4 text-center text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                          {account.email}
+                        </td>
+                      </tr>
                     </>
                   ))}
                 </tbody>
@@ -211,17 +192,20 @@ const Page: NextPage = () => {
             </div>
           </div>
           <div className="mt-8 flex justify-end gap-x-5">
-            <button
-              type="button"
-              onClick={() => {}}
+            <a
+              href={URL.createObjectURL(csvFileUrl())}
+              download={`participants-${Date.now()}.csv`}
               className="items-center rounded-full bg-green-500 py-2 px-4 text-white"
             >
               Export Added Participants
-            </button>
+            </a>
             <button
               type="button"
               onClick={() => {
-                reload()
+                setAccountSummary([])
+                setIsShowAccountForm(true)
+                setIsShowAccountSummary(false)
+                setIsShowDropZone(true)
               }}
               className="items-center rounded-full bg-green-500 py-2 px-4 text-white"
             >

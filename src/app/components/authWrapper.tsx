@@ -1,12 +1,14 @@
 import { useRouter } from 'next/router'
-import type { FunctionComponent } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
 import { useEffect } from 'react'
 
 import { useStoreon } from '../../context/storeon'
 
 import { CenterSpinner } from '../../core/components/centerSpinner'
 
-export const AuthWrapper: FunctionComponent = (props) => {
+export const AuthWrapper: FunctionComponent<{ children: ReactNode }> = ({
+  children,
+}) => {
   const { push, asPath } = useRouter()
   const {
     dispatch,
@@ -38,7 +40,7 @@ export const AuthWrapper: FunctionComponent = (props) => {
       {auth === undefined || auth === null ? (
         <CenterSpinner />
       ) : (
-        <>{props.children}</>
+        <>{children}</>
       )}
     </>
   )

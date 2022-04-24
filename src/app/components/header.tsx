@@ -4,32 +4,12 @@ import type { FunctionComponent } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import type { IdTokenResult } from 'firebase/auth'
 import { signOut } from 'firebase/auth'
-// import type { LinkItem } from './headerNavItems'
-// import { HeaderNavItems, LinkItemType } from './headerNavItems'
 import { useRouter } from 'next/router'
 import { Icon } from '@iconify/react'
 import logoutIcon from '@iconify/icons-heroicons-outline/logout'
 import Logo from './icon/Logo'
 import { useStoreon } from '~/context/storeon'
 import { getAuthInstance } from '~/core/services/firebase/getAuthInstance'
-
-// const Item: LinkItem[] = [
-//   {
-//     type: LinkItemType.INTERNAL,
-//     href: '/docs/installation',
-//     label: 'Docs',
-//   },
-//   {
-//     type: LinkItemType.EXTERNAL,
-//     href: 'https://tailwindui.com',
-//     label: 'Components',
-//   },
-//   {
-//     type: LinkItemType.INTERNAL,
-//     href: '/blog',
-//     label: 'Blog',
-//   },
-// ]
 
 interface HeaderProps {
   className?: string
